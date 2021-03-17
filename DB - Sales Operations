@@ -1,0 +1,216 @@
+
+CREATE DATABASE `salesop`;
+
+CREATE TABLE IF NOT EXISTS `salesop`.`customers` (
+  `customer_id` int NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(50) NOT NULL,
+  `last_name` varchar(50) NOT NULL,
+  `birth_date` date DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `address` varchar(50) DEFAULT NULL,
+  `city` varchar(40) DEFAULT NULL,
+  `postalcode` varchar(20) DEFAULT NULL,
+  `region` varchar(30) DEFAULT NULL,
+  `country` varchar(50) DEFAULT NULL,
+  `points` int DEFAULT '0',
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`customer_id`)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`suppliers` (
+  `supplier_id` int NOT NULL AUTO_INCREMENT,
+  `company_name` varchar(50) NOT NULL,
+  `contact_name` varchar(50) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `fax` varchar(50) NOT NULL,
+  `homepage` varchar(50) NOT NULL,
+  `address` varchar(50) DEFAULT NULL,
+  `city` varchar(40) DEFAULT NULL,
+  `postalcode` varchar(6) DEFAULT NULL,
+  `region` varchar(30) DEFAULT NULL,
+  `country` varchar(50) DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`supplier_id`)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`distributor` (
+  `distributor_id` smallint NOT NULL AUTO_INCREMENT,
+  `distributor_name` varchar(50) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`distributor_id`)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`category` (
+  `category_id` int NOT NULL AUTO_INCREMENT,
+  `category_name` varchar(50) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`category_id`)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`subcategory` (
+  `subcategory_id` int NOT NULL AUTO_INCREMENT,
+  `subcategory_name` varchar(50) NOT NULL,
+  `category_id` int NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`subcategory_id`),
+  KEY `fk_subcategory_id_category_idx` (`category_id`),
+  CONSTRAINT `k_subcategory_id_category_id`
+  FOREIGN KEY (`category_id`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`products` (
+  `product_id` int NOT NULL AUTO_INCREMENT,
+  `product_name` varchar(50) NOT NULL,
+  `subcategory_id` int NOT NULL,
+  `category_id` int NOT NULL,
+  `supplier_id` int NOT NULL,
+  `quantity_in_stock` int NOT NULL,
+  `unit_price` decimal(4,2) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`product_id`),
+  KEY `fk_products_category_idx` (`category_id`),
+  KEY `fk_products_subcategory_idx` (`subcategory_id`),
+  KEY `fk_products_suppliers_idx` (`supplier_id`),
+  CONSTRAINT `fk_products_category_id` FOREIGN KEY (`category_id`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_products_subcategory_id` FOREIGN KEY (`subcategory_id`) REFERENCES `subcategory` (`subcategory_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_products_supplier_id` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`supplier_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`employees_address` (
+  `employee_address_id` int NOT NULL AUTO_INCREMENT,
+  `address` varchar(50) DEFAULT NULL,
+  `address_2` varchar(50) DEFAULT NULL,
+  `city` varchar(40) DEFAULT NULL,
+  `postalcode` varchar(6),
+  `region` varchar(30) DEFAULT NULL,
+  `country` varchar(50) DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`employee_address_id`)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`employees` (
+  `employee_id` int NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(50) NOT NULL,
+  `last_name` varchar(50) NOT NULL,
+  `birth_date` date DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `employee_address_id` int NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`employee_id`),
+ KEY `fk_employees_employee_address_idx` (`employee_address_id`),
+ CONSTRAINT `fk_employees_employee_address` FOREIGN KEY (`employee_address_id`) REFERENCES `employees_address` (`employee_address_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`order_statuses` (
+  `order_status_id` tinyint NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`order_status_id`)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`orders` (
+  `order_id` int NOT NULL AUTO_INCREMENT,
+  `customer_id` int NOT NULL,
+  `order_date` date NOT NULL,
+  `employee_id` int NOT NULL,
+  `order_status` tinyint NOT NULL DEFAULT "1",
+  `comments` varchar(2000) DEFAULT NULL,
+  `payment_id` int NOT NULL,
+  `shipped_date` date DEFAULT NULL,
+  `distributor_id` smallint DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`order_id`),
+  KEY `fk_orders_customers_idx` (`customer_id`),
+  KEY `fk_orders_distributor_idx` (`distributor_id`),
+  KEY `fk_orders_order_statuses_idx` (`order_status`),
+  KEY `fk_orders_employees_idx` (`employee_id`),
+  CONSTRAINT `fk_orders_customers` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_orders_order_statuses` FOREIGN KEY (`order_status`) REFERENCES `order_statuses` (`order_status_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_orders_distributor` FOREIGN KEY (`distributor_id`) REFERENCES `distributor` (`distributor_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_orders_employees` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`order_items` (
+  `order_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `quantity` int NOT NULL,
+  `unit_price` decimal(8,2) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`order_id`,`product_id`),
+  KEY `fk_order_items_order_idx` (`order_id`),
+  KEY `fk_order_items_products_idx` (`product_id`),
+  CONSTRAINT `fk_order_items_orders` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_order_items_products` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`invoices` (
+  `invoice_id` int NOT NULL AUTO_INCREMENT,
+  `invoice_no` int NOT NULL,
+  `invoice_date` DATETIME NOT NULL,
+  `order_id` int NOT NULL,
+  `payment_id` int NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`invoice_id`),
+  KEY `fk_invoices_orders_idx` (`order_id`),
+  CONSTRAINT `fk_invoices_orders` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON UPDATE CASCADE
+ ) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`payments` (
+  `payment_id` int NOT NULL AUTO_INCREMENT,
+  `customer_id` int NOT NULL,
+  `employee_id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `invoice_id` int NOT NULL,
+  `amount` DECIMAL(8,2) NOT NULL,
+  `payment_date` DATETIME NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`payment_id`),
+  KEY `fk_payments_customers_idx` (`customer_id`),
+  KEY `fk_payments_employees_idx` (`employee_id`),
+  KEY `fk_payments_orders_idx` (`order_id`),
+  KEY `fk_payments_invoices_idx` (`invoice_id`),
+  CONSTRAINT `fk_payments_customers` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_payments_employees` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_payments_orders` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_payments_invoices` FOREIGN KEY (`invoice_id`) REFERENCES  `invoices` (`invoice_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `salesop`.`inventory` (
+  `inventory_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `total_stock` int NOT NULL,
+  `supplier_id` int NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`inventory_id`),
+  KEY `fk_inventory_products_idx` (`product_id`),
+  KEY `fk_inventory_suppliers_idx` (`supplier_id`),
+  CONSTRAINT `fk_inventory_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_inventory_supplier_id` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`supplier_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB;
