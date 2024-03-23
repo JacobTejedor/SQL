@@ -1,4 +1,4 @@
-# SQL code buquet
+# SQL Repository
 
 1. DB - Sales Operations
 
